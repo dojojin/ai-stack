@@ -43,9 +43,31 @@ docker compose pull && docker compose up -d   # อัปเดต
 ## OpenClaw (เฟส C ขึ้นไป)
 
 ```bash
-# (เติมคำสั่งจริงหลังติดตั้งเฟส C)
-# ตรวจ provider ชี้ Ollama: 127.0.0.1:11434
-# ดู log / ช่องแชตที่เปิด / allowlist
+# gateway service
+systemctl --user status openclaw-gateway     # สถานะ
+systemctl --user restart openclaw-gateway    # restart (ต้องทำหลังแก้ config)
+systemctl --user stop openclaw-gateway       # หยุด
+
+# สถานะจาก CLI
+openclaw gateway status                      # port, log path, service file
+openclaw doctor                              # ตรวจ config/security ครบ
+openclaw doctor --fix                        # แก้อัตโนมัติ (permissions, session dir)
+
+# โมเดล
+openclaw models list --provider ollama       # โมเดลที่เห็น
+openclaw models set ollama/qwen2.5-coder:7b  # เปลี่ยน default model
+
+# config
+openclaw config get <section>                # ดู config section
+openclaw config set <key> <value>            # แก้ key (restart gateway หลังแก้)
+# config file: ~/.openclaw/openclaw.json
+# exec policy: ~/.openclaw/exec-approvals.json
+
+# log
+tail -f /tmp/openclaw/openclaw-$(date +%Y-%m-%d).log
+
+# WebChat UI
+# เปิด browser → http://127.0.0.1:18789/
 ```
 
 ## GPU / ระบบ

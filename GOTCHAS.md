@@ -71,6 +71,63 @@
 
 ---
 
+## #6 — `openclaw onboard --non-interactive` flag ไม่รู้จัก
+
+- **อาการ:** รัน `openclaw onboard --install-daemon --non-interactive` แล้วได้ error flag unknown → script หยุด
+- **Root cause:** OpenClaw เวอร์ชันใหม่เปลี่ยน onboard flow — `--non-interactive` ไม่ใช่ flag ที่รองรับ
+- **Fix:** แยกขั้นตอนออก:
+  ```bash
+  npm install -g openclaw@latest   # install binary
+  # ข้าม onboard — วาง config ด้วยมือแทน (~/.openclaw/openclaw.json)
+  openclaw gateway install         # ติดตั้ง systemd user service
+  openclaw gateway start           # เริ่ม service
+  loginctl enable-linger <user>    # ให้ service รอดหลัง logout (ต้อง sudo)
+  ```
+- **บทเรียน:** อย่า assume flag ของ onboard — วาง config ด้วยมือดีกว่าและ idempotent กว่า
+
+---
+
+## #7 — OpenClaw memorySearch default เป็น OpenAI → gateway ไม่สมบูรณ์
+
+- **อาการ:** `openclaw doctor` รายงาน "Memory search provider is set to openai but no API key was found" ทั้งที่ตั้งใจใช้ Ollama อย่างเดียว
+- **Root cause:** OpenClaw ค่า default ของ `agents.defaults.memorySearch.enabled` = true และชี้ไป OpenAI embedding — ถ้าไม่มี key จะ warn แต่ยังรันต่อ
+- **Fix:** ปิดทันทีหลังติดตั้ง:
+  ```bash
+  openclaw config set agents.defaults.memorySearch.enabled false
+  systemctl --user restart openclaw-gateway
+  ```
+- **บทเรียน:** ทำใน phase-c script ก่อน start gateway ครั้งแรก
+
+---
+
+## #8 — `openclaw gateway` ไม่ติดตั้ง daemon โดยอัตโนมัติ
+
+- **อาการ:** หลัง `npm install -g openclaw` แล้ว gateway ไม่รัน — `openclaw doctor` รายงาน "Gateway service not installed"
+- **Root cause:** installation ผ่าน npm ไม่ได้ auto-install systemd service — ต้องทำแยก
+- **Fix (ลำดับถูกต้อง):**
+  ```bash
+  openclaw gateway install                    # สร้าง ~/.config/systemd/user/openclaw-gateway.service
+  sudo loginctl enable-linger <username>      # ให้ user service รอดหลัง logout
+  openclaw gateway start                      # start + enable
+  systemctl --user is-active openclaw-gateway # ยืนยัน
+  ```
+- **บทเรียน:** ทำ linger ก่อน start เสมอ ไม่งั้น gateway ดับเมื่อ idle session timeout
+
+---
+
+## #9 — `commands.ownerAllowFrom` format ต้องเป็น JSON array ของ channel ID
+
+- **อาการ:** `openclaw config set commands.ownerAllowFrom "local"` → "Config validation failed: Invalid input"
+- **Root cause:** field นี้รับ array ของ channel-prefixed ID เท่านั้น เช่น `["telegram:123456789"]`
+- **Fix (Phase D):** ตั้งเมื่อมี channel ID จริง:
+  ```bash
+  openclaw config set commands.ownerAllowFrom '["telegram:YOUR_ID"]'
+  systemctl --user restart openclaw-gateway
+  ```
+- **บทเรียน:** ข้ามไปก่อนได้ถ้ายังไม่ต่อ external channel — doctor จะ warn แต่ไม่ block
+
+---
+
 ## (template สำหรับ incident ถัดไป)
 
 ## #n — <หัวข้อสั้น>
