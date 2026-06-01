@@ -11,7 +11,7 @@
 | เฟส | เป้าหมาย | สคริปต์ | สถานะ |
 |---|---|---|---|
 | **0** | Preflight — เช็ค GPU / ดิสก์ / เน็ต / Docker | `scripts/00-preflight.sh` | ✅ ผ่าน (2026-06-01) |
-| **A** | Ollama + โมเดลหลัก → มี LLM ออฟไลน์ใช้ทันที | `scripts/phase-a-ollama.sh` | ⬜ ยังไม่ทำ |
+| **A** | Ollama + โมเดลหลัก → มี LLM ออฟไลน์ใช้ทันที | `scripts/phase-a-ollama.sh` | ✅ ผ่าน (2026-06-01) |
 | **B** | Open WebUI + Continue.dev → หน้าแชต + ผู้ช่วยโค้ด | `scripts/phase-b-webui-continue.sh` | ⬜ ยังไม่ทำ |
 | **B+** | Expose `ai.dojojin.tech` ผ่าน tunnel เดิม (+ Cloudflare Access) | `scripts/phase-b-expose-cloudflare.sh` | ⬜ ยังไม่ทำ |
 | **C** | OpenClaw ต่อ Ollama (local) → agent ออฟไลน์ลองเล่น | `scripts/phase-c-openclaw.sh` | ⬜ ยังไม่ทำ |

@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-06-01 — Phase A: Ollama + โมเดลหลัก ✅
+
+- ติดตั้ง Ollama (official script, IPv4) — `/usr/local/bin/ollama`
+- เปิด systemd service `ollama` (active, ฟังที่ `127.0.0.1:11434`)
+- ดึงโมเดลชุดเริ่มต้น (decision #6):
+  - `qwen2.5-coder:7b` — 4.7 GB (code-chat หลัก)
+  - `qwen2.5-coder:3b` — 1.9 GB (autocomplete)
+  - `qwen2.5:7b` — 4.7 GB (เขียน/แปล/คอนเทนต์)
+- Verify ผ่าน: inference test (fizzbuzz Python) + แปลไทย ตอบถูกต้องทั้งคู่
+- VRAM: 5031 MiB / 6144 MiB ขณะโหลด qwen2.5:7b — รัน sequential 1 โมเดลต่อครั้ง (Ollama จัดการเอง)
+- Advisor ตรวจทาน: ✓ ทุกข้อ พร้อมไป Phase B
+
+---
+
 ## 2026-06-01 — Phase 0: Preflight ผ่าน
 
 - รัน `scripts/00-preflight.sh` ครั้งแรก — ผ่านทุกข้อ ✓
