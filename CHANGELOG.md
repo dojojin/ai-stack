@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-06-01 — Phase B+: Expose ai.dojojin.tech ✅
+
+- เพิ่ม ingress rule `ai.dojojin.tech → http://127.0.0.1:3000` ใน `~/.cloudflared/config-host.yml` (ก่อน catch-all 404)
+- สำรอง config ก่อนแก้ (`.bak-20260601-210441`)
+- restart `cloudflared-dojojin.service` สำเร็จ
+- Verify: `dojojin.tech` ยัง HTTP 200 ✓, `ai.dojojin.tech` ได้ HTTP 302 (Cloudflare Access login) ✓ ไม่ใช่ 404/502
+- แก้ bug: flag `--config` ใน `cloudflared tunnel ingress validate/rule` ผิดตำแหน่ง → แก้เป็น `cloudflared --config FILE tunnel ingress ...`
+
+---
+
 ## 2026-06-01 — Phase B: Open WebUI + Continue.dev ✅
 
 - ดึง image `ghcr.io/open-webui/open-webui:main` + รัน container port `3000→8080`

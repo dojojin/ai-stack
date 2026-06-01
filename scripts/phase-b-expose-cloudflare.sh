@@ -45,7 +45,7 @@ fi
 
 # 2) validate config ก่อน restart (กัน config พังแล้ว dojojin.tech ล่มตาม)
 log_step "validate config"
-cloudflared tunnel ingress validate --config "$CFG" || die "config ไม่ผ่าน validate — ไม่ restart"
+cloudflared --config "$CFG" tunnel ingress validate || die "config ไม่ผ่าน validate — ไม่ restart"
 log_ok "config ผ่าน"
 
 # 3) restart service (ต้อง sudo) — กระทบ dojojin.tech แวบเดียว
@@ -59,7 +59,7 @@ systemctl is-active --quiet "$SERVICE" && log_ok "$SERVICE: active" || die "$SER
 echo
 log_step "Verify"
 log_step "ตรวจ tunnel ส่ง $HOST_AI ถูกปลายทาง:"
-cloudflared tunnel ingress rule --config "$CFG" "https://$HOST_AI" 2>/dev/null || true
+cloudflared --config "$CFG" tunnel ingress rule "https://$HOST_AI" 2>/dev/null || true
 echo
 cat <<EOF
   - dojojin.tech ยังปกติ:   curl -4 -sI https://dojojin.tech | head -1   (คาดหวัง 200)
