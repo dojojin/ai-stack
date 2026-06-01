@@ -128,6 +128,22 @@
 
 ---
 
+## #10 — Open WebUI `ENABLE_SIGNUP=false` บล็อก admin คนแรกด้วย
+
+- **อาการ:** กด Create Admin Account แล้วได้ error "You do not have permission" ทั้งที่ยังไม่มี user เลย — log แสดง `POST /api/v1/auths/signup HTTP/1.1" 403`
+- **Root cause:** `ENABLE_SIGNUP=false` ใน docker-compose.yml บล็อก `/api/v1/auths/signup` ทุก request รวมถึง admin คนแรกด้วย (Open WebUI เวอร์ชันใหม่ไม่ยกเว้น first-user)
+- **Fix:** เปิด signup ชั่วคราว → สร้าง admin → ปิดคืน:
+  ```bash
+  # แก้ compose/docker-compose.yml: ENABLE_SIGNUP=true
+  docker compose -f compose/docker-compose.yml up -d
+  # สมัคร admin ที่ http://localhost:3000
+  # แก้กลับ: ENABLE_SIGNUP=false
+  docker compose -f compose/docker-compose.yml up -d
+  ```
+- **บทเรียน:** ตั้ง `ENABLE_SIGNUP=false` หลังสมัคร admin เสร็จแล้วเท่านั้น ไม่ใช่ตั้งแต่แรก
+
+---
+
 ## (template สำหรับ incident ถัดไป)
 
 ## #n — <หัวข้อสั้น>

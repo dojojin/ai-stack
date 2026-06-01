@@ -4,6 +4,29 @@
 
 ---
 
+## 2026-06-01 — Phase D: Telegram (งานค้าง 🔄)
+
+**ทำแล้ว:**
+- สมัคร admin Open WebUI สำเร็จ (หลังแก้ GOTCHAS #10 — ENABLE_SIGNUP)
+- Open WebUI เห็นโมเดลครบ 3 ตัว + Arena Model พร้อมใช้
+- วางแผน Telegram integration แล้ว: รอ Bot Token + User ID จากผู้ใช้
+
+**งานค้าง (รอมาทำต่อ):**
+- [ ] รับ Telegram Bot Token จาก @BotFather
+- [ ] รับ Telegram User ID จาก @userinfobot
+- [ ] ตั้งค่า OpenClaw: เปิด Telegram channel + ownerAllowFrom
+- [ ] expose webhook ผ่าน tunnel (หรือ polling mode)
+- [ ] verify: ส่ง message ใน Telegram → agent ตอบกลับ
+
+**Postpone ไว้ก่อน:**
+- Claude API key (hybrid brain)
+- LINE channel
+- Gmail/Calendar OAuth
+- Skills (Dev/เขียน/ธุรกิจ)
+- NemoClaw safety layer
+
+---
+
 ## 2026-06-01 — Phase C: OpenClaw local brain ✅
 
 - ติดตั้ง `openclaw@latest` ผ่าน npm (Node 22.22.0, IPv4-first)

@@ -15,7 +15,7 @@
 | **B** | Open WebUI + Continue.dev → หน้าแชต + ผู้ช่วยโค้ด | `scripts/phase-b-webui-continue.sh` | ✅ ผ่าน (2026-06-01) |
 | **B+** | Expose `ai.dojojin.tech` ผ่าน tunnel เดิม (+ Cloudflare Access) | `scripts/phase-b-expose-cloudflare.sh` | ✅ ผ่าน (2026-06-01) |
 | **C** | OpenClaw ต่อ Ollama (local) → agent ออฟไลน์ลองเล่น | `scripts/phase-c-openclaw.sh` | ✅ ผ่าน (2026-06-01) |
-| **D** | OpenClaw + cloud API + แชต (LINE/Telegram) + skill ธุรกิจ | (manual config) | ⬜ ยังไม่ทำ |
+| **D** | OpenClaw + cloud API + แชต (LINE/Telegram) + skill ธุรกิจ | (manual config) | 🔄 Telegram เท่านั้น (ที่เหลือ postpone) |
 
 > รันทุกเฟสด้วย `scripts/00-preflight.sh` ก่อนเสมอ (เช็ค GPU/ดิสก์/เน็ต).
 
