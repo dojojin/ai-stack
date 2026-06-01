@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-06-01 — Phase C: OpenClaw local brain ✅
+
+- ติดตั้ง `openclaw@latest` ผ่าน npm (Node 22.22.0, IPv4-first)
+- config `~/.openclaw/openclaw.json`: gateway bind=loopback, provider=ollama/127.0.0.1:11434, channels ปิดทั้งหมด
+- exec-approvals: security=allowlist, askFallback=deny (ถามก่อนรัน command)
+- ปิด memorySearch (ไม่มี OpenAI key — ใช้ local เท่านั้น)
+- ติดตั้ง `openclaw-gateway.service` (systemd user) + `loginctl enable-linger`
+- gateway HTTP 200 ที่ `http://127.0.0.1:18789/` ✓
+- models เห็น 3 ตัว: `qwen2.5-coder:7b` (default), `:3b`, `qwen2.5:7b` — local=yes ทั้งหมด
+- Advisor verify: bind=loopback ✓, channels=none ✓, inference ผ่าน Ollama ✓
+- warnings ที่รอ Phase D: `commands.ownerAllowFrom` (ต้องการ channel ID) + secrets migration
+
+---
+
 ## 2026-06-01 — Phase B+: Expose ai.dojojin.tech ✅
 
 - เพิ่ม ingress rule `ai.dojojin.tech → http://127.0.0.1:3000` ใน `~/.cloudflared/config-host.yml` (ก่อน catch-all 404)
