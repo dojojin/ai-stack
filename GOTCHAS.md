@@ -38,6 +38,39 @@
 
 ---
 
+## #4 — sudo ต้องการ TTY ใน non-interactive shell (background task)
+
+- **อาการ:** รัน script ที่มี `sudo -v` ใน background (ไม่มี TTY) → `sudo: a terminal is required` → script จบด้วย error
+- **Root cause:** `sudo -v` (validate/refresh ticket) ต้องการ TTY เพื่ออ่าน password. ถ้า stdin ไม่ใช่ terminal จะ fail ทันที แม้ว่า ticket ยังไม่หมดอายุ
+- **Fix:** ใช้ SUDO_ASKPASS helper แทน:
+  ```bash
+  ASKPASS=$(mktemp /tmp/askpass.XXXXXX.sh)
+  printf '#!/bin/sh\nprintf "PASSWORD\n"\n' > "$ASKPASS"
+  chmod 700 "$ASKPASS"
+  SUDODIR=$(mktemp -d)
+  printf '#!/bin/sh\nexec /usr/bin/sudo -A "$@"\n' > "$SUDODIR/sudo"
+  chmod 700 "$SUDODIR/sudo"
+  SUDO_ASKPASS="$ASKPASS" PATH="$SUDODIR:$PATH" bash script.sh
+  ```
+- **บทเรียน:** `-A` (askpass) ไม่กวน stdin → curl|tar pipeline ไม่พัง. ห้ามใช้ wrapper ที่ pipe password เข้า stdin เพราะจะไป intercept stdin ของ command ใน pipeline (เช่น tar)
+
+---
+
+## #5 — Ollama bind 127.0.0.1 → Docker container เชื่อมต่อไม่ได้
+
+- **อาการ:** Open WebUI ใน container เห็น Ollama เป็น "Connection refused" หรือ offline แม้ Ollama รันปกติบน host
+- **Root cause:** Ollama default bind เฉพาะ `127.0.0.1:11434`. Docker container ยิงผ่าน `host.docker.internal` (→ docker bridge IP เช่น 172.17.0.1) ซึ่ง Ollama ไม่ได้ฟัง
+- **Fix:** เพิ่ม systemd override ให้ Ollama bind `0.0.0.0`:
+  ```bash
+  sudo mkdir -p /etc/systemd/system/ollama.service.d
+  printf '[Service]\nEnvironment="OLLAMA_HOST=0.0.0.0:11434"\n' | \
+    sudo tee /etc/systemd/system/ollama.service.d/override.conf
+  sudo systemctl daemon-reload && sudo systemctl restart ollama
+  ```
+- **บทเรียน:** ทำในขั้นตอน Phase A ได้เลยถ้ารู้ว่าจะติดตั้ง Docker service ใน Phase B. ไฟล์ override อยู่ที่ `/etc/systemd/system/ollama.service.d/override.conf`
+
+---
+
 ## (template สำหรับ incident ถัดไป)
 
 ## #n — <หัวข้อสั้น>
