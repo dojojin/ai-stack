@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-06-01 — Phase B: Open WebUI + Continue.dev ✅
+
+- ดึง image `ghcr.io/open-webui/open-webui:main` + รัน container port `3000→8080`
+- HTTP 200 ที่ `http://localhost:3000` ✓
+- วาง Continue config → `~/.continue/config.json` (chat=qwen2.5-coder:7b, autocomplete=:3b)
+- **แก้ปัญหา Ollama bind:** Ollama default bind `127.0.0.1` → container เข้าไม่ได้
+  - เพิ่ม `/etc/systemd/system/ollama.service.d/override.conf` → `OLLAMA_HOST=0.0.0.0:11434`
+  - restart ollama → container→Ollama ต่อได้ (`host.docker.internal:11434`) ✓
+- Advisor verify: WebUI healthy, container เห็น 3 โมเดล ✓
+- ขั้นตอน manual ที่เหลือ: สมัคร admin ที่ `http://localhost:3000` + ติดตั้ง Continue extension ใน VS Code
+
+---
+
 ## 2026-06-01 — Phase A: Ollama + โมเดลหลัก ✅
 
 - ติดตั้ง Ollama (official script, IPv4) — `/usr/local/bin/ollama`
