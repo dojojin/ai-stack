@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-06-01 — Phase 0: Preflight ผ่าน
+
+- รัน `scripts/00-preflight.sh` ครั้งแรก — ผ่านทุกข้อ ✓
+  - GPU: RTX 3060 Laptop 6144 MiB ✓
+  - ดิสก์ว่าง: 784 GB ✓ (threshold ≥30 GB)
+  - RAM: 35 GB ✓
+  - เน็ต IPv4: ✓ (curl4 บังคับ -4 ตาม GOTCHAS #1)
+  - Docker: 29.5.2 ✓
+- Advisor ตรวจทานสคริปต์: lib.sh idempotent ✓, IPv4 enforcement ✓, sudo warning ✓
+- พร้อมรัน Phase A (`scripts/phase-a-ollama.sh`)
+
+---
+
 ## 2026-06-01 — Repo init
 
 - เคลียร์ไฟล์เดิม (สำรองไว้ `.backup-pre-init-20260601/`: docker-compose Open WebUI + Modelfile ChindaMT)
