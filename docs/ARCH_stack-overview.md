@@ -31,9 +31,9 @@
 
 | Service | Bind | Port | หมายเหตุ |
 |---|---|---|---|
-| Ollama | `127.0.0.1` | `11434` | host systemd service. local-only (อย่า bind 0.0.0.0 ถ้าไม่จำเป็น) |
+| Ollama | `0.0.0.0` | `11434` | host systemd service. bind 0.0.0.0 เพื่อให้ Docker container เข้าได้ (override.conf) |
 | Open WebUI | container → host | `3000` → `8080` | เข้าผ่าน `http://localhost:3000`; ออกเน็ต = `ai.dojojin.tech` |
-| OpenClaw WebChat | local | (ตามที่ตั้งใน phase C) | เริ่ม local-only ก่อน |
+| OpenClaw gateway | `127.0.0.1` | `18789` | WebChat UI: `http://127.0.0.1:18789/` local-only |
 
 ### Expose ออกเน็ต (Cloudflare Tunnel)
 
@@ -77,4 +77,18 @@ Internet → ai.dojojin.tech → Cloudflare Access (login) → Tunnel (cloudflar
 
 ---
 
-*ai-stack · ARCH_stack-overview · init 2026-06-01*
+---
+
+## Mobile Access
+
+| วิธี | สถานะ | รายละเอียด |
+|---|---|---|
+| Browser → `ai.dojojin.tech` | ✅ พร้อมใช้ | Open WebUI บน mobile browser ผ่าน Cloudflare Access |
+| Telegram (Phase D) | 🔄 pending | สั่งงาน agent จากมือถือโดยตรง |
+| Native apps (Enchanted/ChatterUI) | ⬜ ต้อง expose Ollama | ต้องเพิ่ม ingress `ollama.dojojin.tech → :11434` + auth |
+
+> แนะนำใช้ browser ก่อน — ปลอดภัยกว่าและไม่ต้องตั้งค่าเพิ่ม
+
+---
+
+*ai-stack · ARCH_stack-overview · อัปเดต 2026-06-03*

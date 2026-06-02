@@ -10,6 +10,21 @@
 - เพิ่ม `gemma3:4b` (3.3 GB) — multimodal รองรับรูปภาพใน Open WebUI
 - อัปเดต Open WebUI **v0.9.5 → v0.9.6** (`docker compose pull && up -d`)
 
+### โมเดลเพิ่มเติม + เครื่องมือใหม่
+- เพิ่ม `nomic-embed-text` (274 MB) — embedding model สำหรับ RAG ใน Open WebUI
+  - ตั้งใน Settings → Documents → Embedding Model → nomic-embed-text
+- สร้าง **Model Router** Pipe (`config/openwebui-model-router.py`):
+  - มีรูปภาพ → `gemma3:4b`
+  - โค้ด/debug → `qwen2.5-coder:7b`
+  - ทั่วไป/ไทย → `qwen2.5:7b`
+  - วิธีเพิ่ม: Admin Panel → Functions → ➕ → paste code → Save
+
+### Mobile Access
+- ยืนยันแนวทาง mobile access ของ stack นี้ (ดู ARCH_stack-overview.md):
+  - **ตอนนี้:** browser → `ai.dojojin.tech` (Open WebUI, Cloudflare Access)
+  - **Native apps (ต้อง expose Ollama API):** Enchanted (iOS), ChatterUI (Android), AnythingLLM
+  - **Phase D:** Telegram — สั่งงาน agent จากมือถือโดยไม่ต้องเปิด browser
+
 ### 1Password CLI
 - ติดตั้ง `1password-cli` v2.34.0 ผ่าน official RPM repo
 - เก็บ secrets ครบใน vault **Personal** tag `ai-stack`:

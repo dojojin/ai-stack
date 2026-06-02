@@ -129,6 +129,8 @@ curl -fsS http://localhost:3000 >/dev/null && echo "WebUI ok"
 - [ ] เพิ่มโมเดล embedding (`nomic-embed-text`) สำหรับ RAG/ค้นเอกสารส่วนตัว
 - [ ] ลองโมเดลโค้ด 14B (offload) เทียบคุณภาพ vs ความเร็วบนเครื่องนี้ → log ใน DECISIONS
 - [ ] Persona/prompt library ใน Open WebUI (แปล/สรุป/เขียน) → `docs/REF_openwebui-prompts.md`
+- [ ] Native mobile app (Enchanted/ChatterUI) → expose Ollama API ผ่าน tunnel + auth
+- [ ] Model Router ปรับ logic ให้แม่นขึ้น (classifier model แทน keyword)
 - [ ] เอกสาร skill ของ OpenClaw → `docs/LOGIC_openclaw-skills.md`
 - [ ] auto-start ทุกเฟสตอน boot (systemd) + health check รวม
 
