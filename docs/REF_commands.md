@@ -70,6 +70,17 @@ tail -f /tmp/openclaw/openclaw-$(date +%Y-%m-%d).log
 # เปิด browser → http://127.0.0.1:18789/
 ```
 
+## 1Password CLI
+
+```bash
+eval $(op signin)                                    # login (ต้องการ TTY — ใช้ใน Konsole)
+op vault list                                        # ดู vault ที่มี
+op item list --tags=ai-stack                         # secrets ทั้งหมดของ project นี้
+op item get "ai-stack sudo" --field password         # ดึงค่า field
+op document get "ai-stack SSH Private Key (id_ed25519)" > ~/.ssh/id_ed25519   # restore file
+# รายละเอียด store/restore ครบ: docs/REF_1password.md
+```
+
 ## GPU / ระบบ
 
 ```bash

@@ -144,6 +144,55 @@
 
 ---
 
+## #11 — `op signin` ต้องการ TTY → ไม่ทำงานใน non-interactive shell
+
+- **อาการ:** `eval $(op signin)` หรือ `op signin` ใน script/pipe → `[ERROR] inappropriate ioctl for device`
+- **Root cause:** `op signin` ต้องอ่าน master password จาก TTY — ถ้าไม่มี terminal จริงจะ fail
+- **Fix:** รันใน terminal จริงเท่านั้น (Konsole, iTerm, Windows Terminal) ไม่ใช่ผ่าน Claude Code หรือ CI
+- **บทเรียน:** เขียน script แยก → ให้รันใน Konsole แทนการรันผ่าน Claude Code
+
+---
+
+## #12 — vault "Private" ไม่มีใน 1Password → ต้องตรวจชื่อก่อน
+
+- **อาการ:** `op item create --vault=Private` → `"Private" isn't a vault in this account`
+- **Root cause:** vault default บัญชีนี้ชื่อ **Personal** ไม่ใช่ Private
+- **Fix:** ตรวจชื่อ vault จริงก่อนเสมอ: `op vault list` → ใช้ชื่อจาก NAME column
+- **บทเรียน:** อย่า assume ชื่อ vault — ตรวจก่อนทุกครั้ง
+
+---
+
+## #13 — `op item create --category="SSH Key"` ไม่รับ field "private key" ตรง ๆ
+
+- **อาการ:** `"private key[concealed]=..."` → `cannot assign the reserved field "private key"`
+- **Root cause:** category SSH Key มี reserved fields ที่ต้องใช้ syntax พิเศษ
+- **Fix:** เก็บ SSH key เป็น **Document** แทน (`op document create`) — restore ได้ถูกต้องกว่าด้วย
+  ```bash
+  op document create ~/.ssh/id_ed25519 --title="..." --vault=Personal
+  op document get "..." > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+  ```
+- **บทเรียน:** files (SSH key, credentials JSON) → `op document create` / text tokens → `op item create`
+
+---
+
+## #14 — Windows SSH config อ่านถูกแต่ Host name ไม่ตรง → resolve ล้มเหลว
+
+- **อาการ:** `ssh ai-stack` → `Could not resolve hostname ai-stack` แม้ config ถูกต้อง
+- **Root cause:** ไฟล์ `~/.ssh/config` มี `Host dojojin` ไม่ใช่ `Host ai-stack` — ชื่อ Host ไม่ match
+- **Fix:** ตรวจ config ด้วย `Get-Content "$env:USERPROFILE\.ssh\config"` ก่อน ssh ทุกครั้ง
+  หรือ recreate ด้วย PowerShell:
+  ```powershell
+  @"
+  Host ai-stack
+      HostName ssh.dojojin.tech
+      User kiseki
+      ProxyCommand cloudflared access ssh --hostname %h
+  "@ | Out-File -FilePath "$env:USERPROFILE\.ssh\config" -Encoding ascii -Force
+  ```
+- **บทเรียน:** Windows SSH config encoding ผิด (BOM/CRLF) → ใช้ `Out-File -Encoding ascii` เสมอ
+
+---
+
 ## (template สำหรับ incident ถัดไป)
 
 ## #n — <หัวข้อสั้น>

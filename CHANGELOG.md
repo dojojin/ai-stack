@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-06-03 — Maintenance: โมเดล / อัปเดต / Secrets / SSH remote
+
+### โมเดล
+- เพิ่ม `gemma3:4b` (3.3 GB) — multimodal รองรับรูปภาพใน Open WebUI
+- อัปเดต Open WebUI **v0.9.5 → v0.9.6** (`docker compose pull && up -d`)
+
+### 1Password CLI
+- ติดตั้ง `1password-cli` v2.34.0 ผ่าน official RPM repo
+- เก็บ secrets ครบใน vault **Personal** tag `ai-stack`:
+  - `ai-stack sudo` (Login)
+  - `ai-stack OpenClaw Gateway Token` (Password)
+  - `ai-stack Cloudflare Tunnel Credentials (f6684909)` (Document — JSON file)
+  - `ai-stack SSH Private Key / Public Key` (Document — key files)
+- วิธี restore บนเครื่องใหม่: ดู `docs/REF_1password.md`
+
+### SSH remote (Windows → ai-stack)
+- ยืนยัน tunnel `ssh.dojojin.tech → :22` active + sshd running
+- Windows SSH config ที่ถูกต้อง: `Host ai-stack` + `ProxyCommand cloudflared access ssh --hostname %h`
+- พบปัญหา host key เปลี่ยน + config ชื่อ Host ไม่ตรง (GOTCHAS #11–#14)
+
+---
+
 ## 2026-06-01 — Phase D: Telegram (งานค้าง 🔄)
 
 **ทำแล้ว:**
