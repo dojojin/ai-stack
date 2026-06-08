@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-06-09 — Migrate ไปเครื่องใหม่ (Bazzite) + ปรับชุดโมเดล
+
+ย้าย ai-stack มาเครื่องใหม่ **Bazzite/Kinoite** (immutable Fedora, KDE) — ฮาร์ดแวร์เดิม (RTX 3060 Laptop 6 GB / 35 GB RAM). กู้จาก backup แล้ว deploy ใหม่.
+
+### Bazzite adaptations (ต่างจาก Nobara เดิม)
+- **Ollama**: official installer สร้าง systemd unit ไม่ได้ (เขียน `/usr/share/ollama` ไม่ได้ — /usr อ่านอย่างเดียว). แก้: เขียน `/etc/systemd/system/ollama.service` เอง — รันเป็น user `ollama`, `OLLAMA_MODELS=/var/lib/ollama/models`, `HOME=/var/lib/ollama`, `OLLAMA_HOST=0.0.0.0:11434` (ให้ container เข้าถึงได้). GPU CUDA ทำงานปกติ.
+- **Open WebUI**: ไม่มี docker บน Bazzite → รันด้วย **podman quadlet** `/etc/containers/systemd/openwebui.container` (system service `openwebui.service`) แทน docker-compose. `PublishPort=127.0.0.1:3000:8080`, ต่อ Ollama ผ่าน `host.containers.internal:11434` (หรือ `host.docker.internal` ก็ได้), data ที่ `/var/lib/openwebui`.
+- nginx/cloudflared/`dojojin.tech`+`docs.dojojin.tech`+`ai.dojojin.tech` กู้ครบ (ดู repo `dojojin-site`).
+
+### ปรับชุดโมเดล
+- **แทนที่** `qwen2.5:7b` → **`qwen3:4b`** (ทั่วไป/ไทย) — รุ่นใหม่กว่า, มี thinking mode, 119 ภาษา, fit GPU 100% (~2.5 GB), เร็วกว่า. ลบ `qwen2.5:7b` ทิ้ง.
+- **แทนที่** embedding `nomic-embed-text` → **`bge-m3`** (1.2 GB, 1024-dim, multilingual — ดีกับไทยมากใน RAG). ลบ `nomic-embed-text` ทิ้ง. **ต้องตั้งใน** Open WebUI → Settings → Documents → Embedding Model → bge-m3 (มิติเปลี่ยน 768→1024 → ถ้าเคย embed เอกสารต้อง re-embed).
+- **เพิ่ม** `deepseek-r1:7b` (reasoning/คณิต/ตรรกะ, ~5.1 GB → 91% GPU/9% CPU offload, ตึงนิดบน 6 GB).
+- คงไว้: `qwen2.5-coder:7b` (โค้ด), `qwen2.5-coder:3b` (autocomplete), `gemma3:4b` (multimodal).
+- **โมเดลรวมตอนนี้ (6 ตัว):** qwen3:4b · qwen2.5-coder:7b · qwen2.5-coder:3b · gemma3:4b · deepseek-r1:7b · bge-m3.
+
+### Model Router (`config/openwebui-model-router.py`) v1.0.0 → v1.2.0
+- ทั่วไป/ไทย: `qwen2.5:7b` → **`qwen3:4b`**
+- **เพิ่ม route ใหม่:** คำนวณ/ตรรกะ (นิพจน์เลข, `คำนวณ/สมการ/พิสูจน์/ตรรกะ`, `solve/prove/calculate/equation/math`...) → **`deepseek-r1:7b`** (อยู่หลังเช็คโค้ด ก่อน default)
+- เพิ่มหมายเหตุ: `bge-m3` เป็น embedding ไม่ route ที่นี่ (ตั้งใน RAG settings)
+- หมายเหตุ: ถ้า paste router เข้า Open WebUI ไปแล้ว ต้องวาง code ใหม่ใน Admin Panel → Functions ให้ตรงเวอร์ชันนี้
+
+---
+
 ## 2026-06-03 — Maintenance: โมเดล / อัปเดต / Secrets / SSH remote
 
 ### โมเดล

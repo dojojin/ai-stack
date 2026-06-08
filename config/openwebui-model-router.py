@@ -1,12 +1,17 @@
 """
 title: Model Router (ai-stack)
 author: dojojin
-version: 1.0.0
+version: 1.2.0
 description: >
   Auto-route คำถามไปยังโมเดลที่เหมาะสมอัตโนมัติ:
-  - มีรูปภาพ       → gemma3:4b       (multimodal)
-  - โค้ด / debug   → qwen2.5-coder:7b (code specialist)
-  - ทั่วไป / ไทย   → qwen2.5:7b      (general)
+  - มีรูปภาพ         → gemma3:4b        (multimodal)
+  - โค้ด / debug     → qwen2.5-coder:7b (code specialist)
+  - คำนวณ / ตรรกะ    → deepseek-r1:7b   (reasoning)
+  - ทั่วไป / ไทย     → qwen3:4b         (general, มี thinking)
+
+  หมายเหตุ: bge-m3 เป็น embedding model สำหรับ RAG — ไม่ได้ route ที่นี่
+  (router นี้ route เฉพาะ chat) ตั้งใน Open WebUI → Settings → Documents
+  → Embedding Model → bge-m3
 """
 
 import re
@@ -80,8 +85,24 @@ class Pipe:
         if any(re.search(p, text, re.IGNORECASE) for p in CODE_PATTERNS):
             return "qwen2.5-coder:7b", "💻 ตรวจพบคำถามเกี่ยวกับโค้ด → qwen2.5-coder:7b"
 
+        # --- ตรวจงานคำนวณ / ตรรกะ (ใช้ reasoning model) ---
+        REASONING_PATTERNS = [
+            # นิพจน์คณิตศาสตร์ (มีตัวเลข + ตัวดำเนินการ)
+            r"\d+\s*[\+\-\*/×÷^%]\s*\d+",
+            # thai math/logic keywords
+            r"คำนวณ", r"สมการ", r"แก้โจทย์", r"พิสูจน์", r"ตรรกะ",
+            r"ทีละขั้น", r"อธิบายเหตุผล", r"คิดเป็นขั้น", r"คณิต",
+            # english math/logic keywords
+            r"\bsolve\b", r"\bprove\b", r"\bproof\b", r"\bcalculate\b",
+            r"\bequation\b", r"\blogic(al)?\b", r"\breasoning\b",
+            r"\bstep[\s-]?by[\s-]?step\b", r"\bmath\b", r"\balgebra\b",
+        ]
+
+        if any(re.search(p, text, re.IGNORECASE) for p in REASONING_PATTERNS):
+            return "deepseek-r1:7b", "🧠 ตรวจพบงานคำนวณ/ตรรกะ → deepseek-r1:7b (reasoning)"
+
         # --- default: general / Thai ---
-        return "qwen2.5:7b", "💬 คำถามทั่วไป → qwen2.5:7b"
+        return "qwen3:4b", "💬 คำถามทั่วไป → qwen3:4b"
 
     def pipe(self, body: dict) -> Generator:
         messages = body.get("messages", [])
