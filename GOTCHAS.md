@@ -193,6 +193,59 @@
 
 ---
 
+## #15 — SearXNG `language` เป็น list (`th,en`) → HTTP 400 ทุก query
+
+- **อาการ:** เปิด Web Search ใน Open WebUI แล้วโมเดลยังตอบข่าวเก่า; SearXNG log: `ERROR:searx.webapp: search error: SearxParameterException` + `parse_lang ... raise SearxParameterException('language', ...)`; ทุก query ได้ HTTP 400
+- **Root cause:** ตั้ง `searxng_language = "th,en"` (หลายภาษาคั่น comma) แต่ SearXNG รับ**ภาษาเดียว**เท่านั้น — list ทำให้ reject ทั้ง request
+- **Fix:** ตั้งเป็น **`all`** (ค้นทุกภาษา) หรือภาษาเดียว — Open WebUI → Admin → Settings → Web Search → Searxng Language, หรือ config DB `rag.web.search.searxng_language='all'`
+- **บทเรียน:** web search "เงียบ ๆ ไม่เวิร์ก" + โมเดลตอบจากความจำเก่า → เช็ค **SearXNG log หา 400** ก่อนเสมอ (ไม่ใช่เดาว่าโมเดลพัง)
+
+---
+
+## #16 — Model Router (pipe) + Web Search → context ไม่เข้าโมเดล
+
+- **อาการ:** เปิด 🌐 Web Search แล้วยังตอบข่าวเก่า ทั้งที่ search รัน + embed สำเร็จ
+- **Root cause:** เลือกโมเดลเป็น **"🔀 Model Router"** (Open WebUI Function/pipe). pipe ส่ง `messages` ไป Ollama เองตรง ๆ → **ไม่รับ RAG/web-search context** ที่ Open WebUI ฉีดเข้า payload
+- **Fix:** เวลาจะใช้ Web Search / RAG ให้เลือก **โมเดลตรง** (`qwen3:4b`) ไม่ใช่ Model Router
+- **บทเรียน:** pipe = bypass middleware injection. Web search/RAG ใช้กับ **direct model** เท่านั้น
+
+---
+
+## #17 — Web search RAG retrieve ได้ 0 chunk (sources=0) แม้ embed สำเร็จ
+
+- **อาการ:** log แสดง "embeddings generated 103 for 103 items" + "added to collection" สำเร็จ แต่คำตอบ `usage.input_tokens≈412` และ `sources=0` → ไม่มี context เข้าโมเดล (โมเดลเดาเอง)
+- **Root cause:** ขั้น retrieve+inject คืน 0 chunk (เงียบ ไม่มี error) แม้ `top_k=3`, `relevance_threshold=0`. น่าจะ chunk จาก markdown splitter แตกเป็นเศษ (nav/menu) ไม่ match query
+- **Fix:** เปิด **`bypass_embedding_and_retrieval=True`** (+ `bypass_web_loader=True` ให้ context ไม่บวม) → Open WebUI ฉีดผลค้น**ตรง ๆ** ไม่ผ่าน vector retrieval. เร็วขึ้นด้วย (ไม่ต้อง embed)
+- **บทเรียน:** สำหรับสรุปข่าว **direct-inject เชื่อถือได้กว่า** embed+retrieve. ใช้ `usage.input_tokens` เป็นตัวชี้ว่า context เข้าจริงไหม (สูง=เข้า, ~400=ไม่เข้า)
+
+---
+
+## #18 — `.webui_secret_key` ไม่ persist → 401 Unauthorized ทุก restart
+
+- **อาการ:** หลัง restart container ของ Open WebUI ทุก endpoint ตอบ **401** (`/api/...` ทั้งหมด) → หลุด login ต้อง login ใหม่ทุกครั้ง
+- **Root cause:** ไม่ได้ตั้ง `WEBUI_SECRET_KEY` env + ไฟล์ `/app/backend/data/.webui_secret_key` ไม่ถูก persist → Open WebUI **gen secret ใหม่ทุก start** → JWT token เดิม invalid
+- **Fix:** pin secret เป็น env ใน quadlet:
+  ```ini
+  # /etc/containers/systemd/openwebui.container → [Container]
+  Environment=WEBUI_SECRET_KEY=<fixed-random-hex>   # openssl rand -hex 32
+  ```
+  `systemctl daemon-reload && systemctl restart openwebui` → login ใหม่ครั้งสุดท้าย จากนั้น restart ไม่ logout อีก
+- **บทเรียน:** containerized Open WebUI **ต้อง pin `WEBUI_SECRET_KEY` เสมอ** ไม่งั้น restart = logout ทุกคน
+
+---
+
+## #19 — Web search ช้ามาก (~2 นาที) — thinking model + page fetch + embed
+
+- **อาการ:** ถามข่าวผ่าน Web Search แล้วรอ ~2 นาทีกว่าจะตอบ
+- **Root cause:** ช้าหลายชั้นรวมกัน — โหลดหน้าเว็บเต็ม ~66s, embed 100+ ชิ้น ~30s, **query-generation ใช้ task model = โมเดลแชต (qwen3 thinking)** ~26s, + คำตอบ qwen3 thinking อีก ~26s
+- **Fix (รวม):**
+  - `bypass_web_loader=True` (ใช้ snippet ไม่โหลดทั้งหน้า) + `bypass_embedding_and_retrieval=True` + `result_count=5`
+  - ตั้ง env `TASK_MODEL=qwen2.5-coder:3b` ใน quadlet → query/title generation ใช้โมเดลเล็ก **ไม่ thinking**
+  - ผู้ใช้เติม `/no_think` ตอนถาม → ปิด thinking ของ qwen3 (ตัด ~26s)
+- **บทเรียน:** บน 6GB อย่าใช้ thinking model เป็น **task model** — ทุก background op (query gen, title, tags) จะ thinking ตามไปด้วย แยก task model เป็นตัวเล็กเสมอ
+
+---
+
 ## (template สำหรับ incident ถัดไป)
 
 ## #n — <หัวข้อสั้น>

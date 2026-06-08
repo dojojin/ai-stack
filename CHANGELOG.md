@@ -4,6 +4,31 @@
 
 ---
 
+## 2026-06-09 — Web Search (SearXNG) + Open WebUI tuning
+
+เปิดให้ Open WebUI ค้นข้อมูลสด/สรุปข่าวประจำวันได้ (ดูเต็ม: `docs/REF_websearch-searxng.md`, GOTCHAS #15–#19).
+
+### SearXNG (self-host)
+- ติดตั้งเป็น **podman quadlet** `/etc/containers/systemd/searxng.container` (ไม่มี docker บน Bazzite)
+- network `ai-stack` (สร้างใหม่) — openwebui + searxng คุยกันด้วยชื่อ container; openwebui ต่อ Ollama ผ่าน `host.containers.internal`
+- config `/var/lib/searxng/settings.yml`: เปิด `formats: [html, json]` (จำเป็นสำหรับ Open WebUI)
+
+### Open WebUI config
+- Embedding: engine=ollama, model=**bge-m3** (แก้ typo `ิbge-m3`→`bge-m3` ที่ทำ embed พัง)
+- Web Search: engine=searxng, query URL=`http://searxng:8080/search?q=<query>`
+- **searxng_language=`all`** (เดิม `th,en` ทำ SearXNG ตอบ 400 ทุก query — GOTCHAS #15)
+- **bypass_web_loader=on + bypass_embedding_and_retrieval=on** — ฉีดผลค้นตรง ๆ (retrieval เดิมได้ 0 chunk; เร็วขึ้นมากด้วย — GOTCHAS #16,#17)
+- result_count=5
+
+### quadlet env (openwebui)
+- **`WEBUI_SECRET_KEY` pinned** — เดิมไม่ persist ทำให้ restart=logout 401 ทุกครั้ง (GOTCHAS #18)
+- **`TASK_MODEL=qwen2.5-coder:3b`** — query/title generation ใช้โมเดลเล็ก ไม่ thinking (เดิม default ไป qwen3 thinking ~26s — GOTCHAS #19)
+
+### วิธีใช้
+ใช้โมเดล **direct** (`qwen3:4b`) ไม่ใช่ Model Router (pipe ไม่รับ web-search context) + เปิด 🌐 + เติม `/no_think`.
+
+---
+
 ## 2026-06-09 — Migrate ไปเครื่องใหม่ (Bazzite) + ปรับชุดโมเดล
 
 ย้าย ai-stack มาเครื่องใหม่ **Bazzite/Kinoite** (immutable Fedora, KDE) — ฮาร์ดแวร์เดิม (RTX 3060 Laptop 6 GB / 35 GB RAM). กู้จาก backup แล้ว deploy ใหม่.
